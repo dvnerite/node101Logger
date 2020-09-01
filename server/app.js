@@ -1,17 +1,47 @@
+
 const express = require('express');
 const fs = require('fs');
 const csv = require('csvtojson');
-const csvFilePath = './server/log.csv'
+const csvFilePath = './log.csv'
 const app = express();
+
+var initialData = [];
 
 app.use((req, res, next) => {
     // write your logging code here
-    const agent = req.headers["user-agent"].replace(/,/g, '');
+    const agent = req.get("user-agent").replace(/,/g, '');
+        // var agentAsString = '"' + agent + '"';
+        initialData.push(agent)
+        // console.log(agent);
+    
     const time = new Date().toISOString();
+        // var timeFormatted = time.toISOString()
+        initialData.push(time)
+
     const method = req.method;
+        initialData.push(method);
+
     const resource = req.url;
-    const version = `HTTP/${req.httpVersion}`;
+        initialData.push(resource);
+
+    const version = `HTTP/` + req.httpVersion;
+        initialData.push(version);
+    
     const status = '200';
+        initialData.push(status);
+
+    // var arrayToString = initialData.join(",");
+    // var stringWithLineBreak = arrayToString + "\n";
+
+//     fs.appendFile("/log.csv", stringWithLineBreak, (err) => {
+//         if (err) throw err;
+//         function emptyArray() {
+//             initialData.length = 0;
+//         }
+//         emptyArray();
+//     })
+   
+// });
 
     fs.appendFile(csvFilePath, agent+",", (err) => {
         if (err) throw err;
@@ -42,11 +72,12 @@ app.get('/', (req, res) => {
 
 app.get('/logs', (req, res) => {
     // write your code to return a json object containing the log data here
+    // const csvFilePath = '/Users/wilson/projects/node101-log-all-the-things/server/log.csv';
     csv()
     .fromFile(csvFilePath)
     .then((jsonObj) => {
-        res.send(jsonObj);
-        console.log(jsonObj);
+        res.status(200).send(jsonObj);
+        // console.log(jsonObj);
     });
 });
 
